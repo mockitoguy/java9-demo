@@ -1,4 +1,4 @@
-package com.linkedin.java9demo.impl.internal;
+package com.linkedin.java9demo.impl;
 
 import com.linkedin.java9demo.api.SomeApi;
 
