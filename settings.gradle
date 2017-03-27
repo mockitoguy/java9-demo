@@ -1,0 +1,10 @@
+rootProject.name = 'java9'
+
+include "api", "impl", "service", "provider"
+
+rootProject.children.each { project ->
+    String projectDirName = "modules/$project.name"
+    project.projectDir = new File(settingsDir, projectDirName)
+    assert project.projectDir.isDirectory()
+    assert project.buildFile.isFile()
+}

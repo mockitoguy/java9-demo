@@ -1,0 +1,5 @@
+apply from: "$rootDir/gradle/java9-library.gradle"
+
+dependencies {
+    compile project(":service")
+}

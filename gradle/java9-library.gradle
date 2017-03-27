@@ -1,0 +1,65 @@
+apply plugin: 'base'
+
+version = "1.0.0"
+
+configurations {
+    compile
+}
+
+task prepare {
+    doLast {
+        file("$buildDir/classes").mkdirs()
+    }
+}
+
+tasks.withType(Exec) {
+    environment JAVA_HOME: "/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home"
+    doFirst { logger.lifecycle("  Running:\n    {}", commandLine.join(" ")) }
+}
+
+task javaVersion(type: Exec) {
+    commandLine "java", "-version"
+}
+
+task compile(type: Exec) {
+    dependsOn prepare, project.configurations.compile
+
+    doFirst {
+        commandLine "javac", "-d", "$buildDir/classes"
+        logger.lifecycle "  Found ${project.configurations.compile.size()} jar(s) to be included in module path for compilation."
+        if (!project.configurations.compile.isEmpty()) {
+            commandLine += "--module-path"
+            project.configurations.compile.each {
+                commandLine += it
+            }
+        }
+        file("src/main/java").eachFileRecurse {
+            if (it.name.endsWith(".java")) {
+                commandLine += it
+            }
+        }
+    }
+}
+
+task jar(type: Exec) {
+    dependsOn compile
+    doFirst { file("$buildDir/libs").mkdirs() }
+    ext.outputFile = file("$buildDir/libs/${project.name}-${version}.jar")
+    commandLine "jar", "--create",
+            "--file=$outputFile",
+            "--module-version=$version",
+            "-C", "$buildDir/classes", "."
+}
+
+artifacts {
+    "default"(jar.outputFile) {
+        builtBy jar
+    }
+}
+
+task describeJar(type: Exec) {
+    dependsOn jar
+    commandLine "jar", "-d", "--file=$jar.outputFile"
+}
+
+build.dependsOn jar, describeJar
